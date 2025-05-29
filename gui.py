@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 import time
-from datetime import datetime, timedelta
-import devices  # moduł do obsługi pinów i sensorów (musisz zaimplementować)
+from datetime import datetime,
+import devices
 
-sg.theme('LightGreen')
+sg.theme('Green')
 
 layout = [
     [sg.Text('Smart Szklarnia', font=('Any', 20), justification='center', expand_x=True)],
@@ -112,7 +112,7 @@ while True:
         except:
             target_hum = None
 
-        # Prosty regulator wilgotności - włącz wiatrak jeśli wilgotność za wysoka
+        #  włącz wiatrak jeśli wilgotność za wysoka
         if hum is not None and target_hum is not None:
             if hum > target_hum:
                 fan_on = True
@@ -122,7 +122,6 @@ while True:
             window['-FAN-'].update('Wiatrak ON' if fan_on else 'Wiatrak OFF',
                                    button_color=('white', 'green') if fan_on else ('white', 'red'))
 
-        # Nawodnienie (x razy na tydzień po y sekund)
         try:
             water_times = int(values['-WATER_TIMES-'])
             water_seconds = int(values['-WATER_SECONDS-'])
@@ -131,10 +130,10 @@ while True:
             water_seconds = 0
 
         today = datetime.now().date()
-        # Sprawdzamy, czy dziś już podlewaliśmy (last_watering_times przechowuje daty podlewania)
+
         if water_times > 0 and water_seconds > 0:
             if len(last_watering_times) < water_times or (today - last_watering_times[-1]).days >= 1:
-                # Podlewamy
+
                 log(f"Automatyczne podlewanie: {water_seconds} sekund")
                 devices.set_pump(True)
                 window.refresh()
