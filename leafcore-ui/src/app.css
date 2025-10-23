@@ -1,0 +1,33 @@
+:root{
+  --bg:#0b0d12;
+  --card:#0f131a;
+  --text:#e9eef7;
+  --muted:#96a0b3;
+}
+
+html,body,#app{height:100%;}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+.container{
+  max-width:1200px;margin:0 auto;padding:24px;
+  display:flex;flex-direction:column;gap:18px;align-items:center;
+}
+.header{display:flex;flex-direction:column;gap:4px;align-items:center;opacity:.9}
+.header .date{font-size:14px;color:var(--muted)}
+.header .time{font-size:64px;line-height:1;font-weight:700;letter-spacing:1px}
+
+.grid{
+  width:100%;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:22px;
+  place-items:center;
+}
+
+.card{
+  width:300px;height:300px; /* okrągły element sam trzyma wymiar przez SVG */
+  display:grid;place-items:center;
+}
+
+.footer{opacity:.6;font-size:12px;margin-top:6px}
