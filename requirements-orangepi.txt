@@ -1,0 +1,23 @@
+# Requirements for Orange Pi Zero 2W GPIO control
+# Install with: pip install -r requirements-orangepi.txt
+
+# WiringPi library for Orange Pi
+wiringpi
+
+# DHT sensor library
+Adafruit-DHT
+
+# Alternative DHT library (if available)
+# OrangePi-DHT
+
+# GPIO library (fallback)
+# OPi.GPIO
+
+# GUI requirements
+tkinter  # Usually included with Python
+
+# JSON handling (built-in)
+# json
+
+# Flask for web interface (if used)
+flask
