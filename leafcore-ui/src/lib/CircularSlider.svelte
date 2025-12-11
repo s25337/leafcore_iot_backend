@@ -1,16 +1,18 @@
 <script>
-  export let value = 0;
-  export let min = 0;
-  export let max = 100;
-  export let size = 260;            // px
-  export let stroke = 12;           // grubość pierścienia
-  export let startAngle = -130;     // gdzie zaczyna się łuk (deg)
-  export let endAngle = 130;        // gdzie kończy się łuk (deg)
-  export let label = '';
-  export let unit = '';
-  export let gradient = ['#7dd3fc','#60a5fa','#a78bfa','#f472b6','#fb7185']; // kolory obwódki
-  export let decimals = 0;
-  export let fontScale = 0.28;      // rozmiar liczby względem średnicy
+  let {
+    value = $bindable(0),
+    min = 0,
+    max = 100,
+    size = 260,
+    stroke = 12,
+    startAngle = -130,
+    endAngle = 130,
+    label = '',
+    unit = '',
+    gradient = ['#7dd3fc','#60a5fa','#a78bfa','#f472b6','#fb7185'],
+    decimals = 0,
+    fontScale = 0.28
+  } = $props();
 
   const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
   const rng = max - min;
@@ -24,49 +26,43 @@
   const arcCirc = circumference * arcRatio;
 
   // procent w obrębie łuku
-  $: t = (clamp(value,min,max) - min) / rng;
-  $: dash = `${arcCirc * t} ${arcCirc}`;
+  let t = $derived((clamp(value,min,max) - min) / rng);
+  let dash = $derived(`${arcCirc * t} ${arcCirc}`);
 
   // położenie gałki
   const angToXY = (deg) => {
     const rad = (deg - 90) * Math.PI/180;
     return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
   };
-  $: knobAngle = startAngle + t * (endAngle - startAngle);
-  $: [kx, ky] = angToXY(knobAngle);
+  let knobAngle = $derived(startAngle + t * (endAngle - startAngle));
+  let [kx, ky] = $derived(angToXY(knobAngle));
 
-  let dragging = false;
+  let dragging = $state(false);
+  let svgRef; // zwykła zmienna dla bind:this
 
   const angleFromPoint = (x, y) => {
     const dx = x - cx;
     const dy = y - cy;
     let deg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-    // sprowadź do zakresu [0,360)
     if (deg < 0) deg += 360;
     return deg;
   };
 
   const projectToArc = (deg) => {
-    // Normalizuj tak, by porównywać z naszym zakresem (może przechodzić przez 0)
     const a0 = (startAngle + 360) % 360;
     const a1 = (endAngle + 360) % 360;
 
-    // Zbuduj funkcję sprawdzania odległości kątowej w obu kierunkach
     const norm = d => (d+360)%360;
 
     let d0 = norm(deg - a0);
     let d1 = norm(a1 - a0);
 
-    // jeśli łuk nie zawija przez 0
     if (a0 < a1) {
       if (deg < a0) return a0;
       if (deg > a1) return a1;
       return deg;
     } else {
-      // łuk zawija przez 0
-      // zakres to [a0..360) ∪ [0..a1]
       if (deg >= a0 || deg <= a1) return deg;
-      // wybierz bliższy koniec
       const toA0 = norm(deg - a0);
       const toA1 = norm(a1 - deg);
       return toA0 < toA1 ? a0 : a1;
@@ -74,40 +70,37 @@
   };
 
   const setByPointer = (clientX, clientY, el) => {
+    if (!el) return;
     const rect = el.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
     let deg = angleFromPoint(x, y);
     deg = projectToArc(deg);
 
-    // przemapuj na t
-    let tt = (deg - startAngle) / (endAngle - startAngle);
-    // gdy zakres zawija, end-start ujemny — obsłuż:
     const span = endAngle - startAngle;
-    tt = (deg - startAngle) / span;
+    let tt = (deg - startAngle) / span;
     tt = clamp(tt, 0, 1);
 
     const nv = min + tt * rng;
     value = Math.round(nv * (10**decimals)) / (10**decimals);
   };
 
-  let svgRef;
-
   const onPointerDown = (e) => {
+    if (!svgRef) return;
     dragging = true;
     svgRef.setPointerCapture(e.pointerId);
     setByPointer(e.clientX, e.clientY, svgRef);
   };
+
   const onPointerMove = (e) => {
-    if (!dragging) return;
+    if (!dragging || !svgRef) return;
     setByPointer(e.clientX, e.clientY, svgRef);
   };
+
   const onPointerUp = (e) => {
+    if (!svgRef) return;
     dragging = false;
     svgRef.releasePointerCapture(e.pointerId);
-    // emit change event (opcjonalne)
-    const ev = new CustomEvent('change', { detail: value });
-    dispatchEvent(ev);
   };
 
   // gradient id unikalny per instancja
@@ -118,11 +111,11 @@
   bind:this={svgRef}
   width={size}
   height={size}
-  on:pointerdown={onPointerDown}
-  on:pointermove={onPointerMove}
-  on:pointerup={onPointerUp}
-  on:pointercancel={onPointerUp}
-  style="cursor:grab; touch-action:none;"
+  onpointerdown={onPointerDown}
+  onpointermove={onPointerMove}
+  onpointerup={onPointerUp}
+  onpointercancel={onPointerUp}
+  style="cursor:grab; touch-action:none; user-select:none;"
   viewBox={`0 0 ${size} ${size}`}
 >
   <defs>
