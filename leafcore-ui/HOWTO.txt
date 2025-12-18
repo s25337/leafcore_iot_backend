@@ -1,1 +1,2 @@
-dist && python3 -m http.server 8000
+cd dist && python3 -m http.server 8000 
+wejdz na localhosy 8000
